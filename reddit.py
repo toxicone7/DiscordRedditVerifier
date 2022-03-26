@@ -48,6 +48,7 @@ def stats_view(user_dict, six_mos, mode):
     keys = user_dict.keys()
     vals = user_dict.values()
 
+    # parallel sorting
     v, k = zip(*sorted((zip(vals, keys)), reverse=True))
 
     total = sum(vals)
@@ -66,12 +67,11 @@ def stats_view(user_dict, six_mos, mode):
             other_6_mos += six_mos[k[i]]
             continue
         # print("{:<20}| {:<10} | {:<6} | {} ".format(k[i], str(v[i]/total*100)+"%", v[i], six_mos[k[i]]))
-        stats += "{:<20}| {:<10} | {:<6} | {} \n".format(k[i], str(v[i] / total * 100) + "%", v[i], six_mos[k[i]])
+        stats += "{:<20}| {:<10.2f} | {:<6} | {} \n".format(k[i], v[i] / total * 100, v[i], six_mos[k[i]])
 
     if len(vals) > 10:
         # print("{:<20}| {:<10} | {:<6} | {} ".format('Other Subreddits', str(other_count/ total * 100) + "%", other_count, other_6_mos))
-        stats += "{:<20}| {:<10} | {:<6} | {} \n".format('Other Subreddits', str(other_count / total * 100) + "%",
-                                                         other_count, other_6_mos)
+        stats += "{:<20}| {:<10.2f} | {:<6} | {} \n".format('Other Subreddits', other_count / total * 100, other_count, other_6_mos)
     stats += '```'
 
     return stats
@@ -120,16 +120,18 @@ async def search_user_stats(user):
     summary = []
     determination_flags = defaultdict(int)
     summary.append(f"__**Summary for user /r/{user.name}**__.\n<https://reddit.com/r/{user.name}>")
+
     # Checking total karma constraint
     # if total_karma > 1000:
     #     print("More than 1k karma")
     # else:
     #     print("Less than 1k karma")
+    total_karma = int(user.link_karma) + int(user.comment_karma)
     summary.append(f"The user has {total_karma} karma.")
-
+    determination_flags["karma"] = int(total_karma > 1000)
     print(summary[-1])  # debug
 
-    determination_flags["karma"] = int(total_karma > 1000)
+
 
     # Checking account created more than 6 months ago constraint
     # 180days = 6 months

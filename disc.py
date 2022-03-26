@@ -63,8 +63,10 @@ async def on_raw_reaction_add(payload):
 
     channel = client.get_channel(957100463369617470)
     postchannel = client.get_channel(956182853006270464)
+    guild = client.get_guild(956182780251873311)
     message_id = 957032030036713575
-    admin_role = client.get_guild(956182780251873311).get_role(956182931485900800)
+    admin_role = guild.get_role(956182931485900800)
+    verify_role = guild.get_role(957168862737104958)
 
     # print(payload)
     if payload.message_id == message_id:
@@ -96,6 +98,7 @@ async def on_raw_reaction_add(payload):
                         summary = await search_user_stats(user)
                         summary.append(f"Name on Discord: **{'#'.join(parsed_disc_user)}**")
                         summary.append(f"__Options for *{'#'.join(parsed_disc_user)}*:__ \n✅ - Verify\n⁉️- Verify and probate\n⛔ - No Verification")
+                        # TODO: send @everyone to make a ping and then delete msg
                         msg = await postchannel.send('\n'.join(summary))
                         await msg.add_reaction(emoji='✅')
                         await msg.add_reaction(emoji='⁉️')
@@ -109,16 +112,37 @@ async def on_raw_reaction_add(payload):
                             return False
 
                         try:
-                            reaction, react_user = await client.wait_for('reaction_add', check=check)
-                            print(reaction)
-                            if reaction == '✅': #add role
-                                continue
-                            elif reaction == '⁉️': #add_role and probate
-                                continue
-                            elif reaction == '⛔': #deny and send message
-                                continue
-                        except:
-                            continue
+                            # checking if there is a react on the added reactions
+                            reaction, mod_user = await client.wait_for('reaction_add', check=check)
+
+                            # print(dir(reaction))
+                            # TODO: Add on the DB who approved.
+                            # TODO: Welcome message on #general
+                            # TODO: PM the user notifying that they have been verified/probated
+                            print("UserID: ", payload.user_id)
+                            # disc_user = guild.get_member(payload.user_id)
+
+                            # print(dir(disc_user))
+
+                            if reaction.emoji == '✅': #add role
+                                print("HERE!!!!!")
+                                await payload.member.add_roles(verify_role)
+                                await msg.clear_reactions()
+
+                            elif reaction.emoji == '⁉️': #add_role and probate
+                                await payload.member.add_roles(verify_role)
+                                msg2 = await postchannel.send(f'paste this to probate user `!probate <@{payload.user_id}>`')
+                                await msg.clear_reactions()
+                            elif reaction.emoji == '⛔': #deny and send message
+                                print("NO ENTRY BIATCH")
+                                await msg.clear_reactions()
+                                # TODO: Kick user
+                            message.mark_read()
+
+
+                        except Exception as e:
+                            print(e)
+
 
 
 
