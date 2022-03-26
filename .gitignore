@@ -2,3 +2,8 @@
 test.py
 creds.csv
 .idea
+/token.txt
+
+__pycache__/
+test2.py
+reddit2.py
